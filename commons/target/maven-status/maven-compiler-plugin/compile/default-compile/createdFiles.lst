@@ -1,0 +1,9 @@
+org\gmaystorski\recommend\commons\pool\SessionPool.class
+org\gmaystorski\recommend\commons\pool\AbstractConnectionPool.class
+org\gmaystorski\recommend\commons\cypher\query\CypherQueryBuilder$EdgeDirection.class
+org\gmaystorski\recommend\commons\cypher\query\QueryConstants.class
+org\gmaystorski\recommend\commons\pool\ConnectionPassivationException.class
+org\gmaystorski\recommend\commons\pool\ConnectionReleaseException.class
+org\gmaystorski\recommend\commons\pool\ConnectionAcquisitionException.class
+org\gmaystorski\recommend\commons\cypher\query\CypherQueryBuilder$OrderDirection.class
+org\gmaystorski\recommend\commons\cypher\query\CypherQueryBuilder.class
