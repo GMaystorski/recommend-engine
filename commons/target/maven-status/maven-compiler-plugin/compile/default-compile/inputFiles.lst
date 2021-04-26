@@ -1,7 +1,0 @@
-C:\Users\I520601\eclipse-workspace-2\recommend-engine\commons\src\main\java\org\gmaystorski\recommend\commons\cypher\query\QueryConstants.java
-C:\Users\I520601\eclipse-workspace-2\recommend-engine\commons\src\main\java\org\gmaystorski\recommend\commons\cypher\query\CypherQueryBuilder.java
-C:\Users\I520601\eclipse-workspace-2\recommend-engine\commons\src\main\java\org\gmaystorski\recommend\commons\pool\AbstractConnectionPool.java
-C:\Users\I520601\eclipse-workspace-2\recommend-engine\commons\src\main\java\org\gmaystorski\recommend\commons\pool\ConnectionPassivationException.java
-C:\Users\I520601\eclipse-workspace-2\recommend-engine\commons\src\main\java\org\gmaystorski\recommend\commons\pool\ConnectionReleaseException.java
-C:\Users\I520601\eclipse-workspace-2\recommend-engine\commons\src\main\java\org\gmaystorski\recommend\commons\pool\SessionPool.java
-C:\Users\I520601\eclipse-workspace-2\recommend-engine\commons\src\main\java\org\gmaystorski\recommend\commons\pool\ConnectionAcquisitionException.java
