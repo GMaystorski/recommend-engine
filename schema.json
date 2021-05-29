@@ -1,0 +1,96 @@
+﻿[
+  {
+    "nodes": [
+      {
+        "identity": -3,
+        "labels": [
+          "Category"
+        ],
+        "properties": {
+"name": "Category",
+"indexes": [],
+"constraints": [
+            "Constraint( id=6, name='category_unique', type='UNIQUENESS', schema=(:Category {name}), ownedIndex=5 )"
+          ]
+        }
+      },
+      {
+        "identity": -4,
+        "labels": [
+          "Year"
+        ],
+        "properties": {
+"name": "Year",
+"indexes": [],
+"constraints": [
+            "Constraint( id=8, name='year_unique', type='UNIQUENESS', schema=(:Year {year}), ownedIndex=7 )"
+          ]
+        }
+      },
+      {
+        "identity": -2,
+        "labels": [
+          "Production"
+        ],
+        "properties": {
+"name": "Production",
+"indexes": [],
+"constraints": [
+            "Constraint( id=2, name='production_unique', type='UNIQUENESS', schema=(:Production {id}), ownedIndex=1 )"
+          ]
+        }
+      },
+      {
+        "identity": -1,
+        "labels": [
+          "Person"
+        ],
+        "properties": {
+"name": "Person",
+"indexes": [],
+"constraints": [
+            "Constraint( id=4, name='person_unique', type='UNIQUENESS', schema=(:Person {name}), ownedIndex=3 )"
+          ]
+        }
+      }
+    ],
+    "relationships": [
+      {
+        "identity": -3,
+        "start": -2,
+        "end": -4,
+        "type": "releasedIn",
+        "properties": {
+
+        }
+      },
+      {
+        "identity": -4,
+        "start": -1,
+        "end": -2,
+        "type": "directed",
+        "properties": {
+
+        }
+      },
+      {
+        "identity": -2,
+        "start": -2,
+        "end": -3,
+        "type": "inCategory",
+        "properties": {
+
+        }
+      },
+      {
+        "identity": -1,
+        "start": -1,
+        "end": -2,
+        "type": "actedIn",
+        "properties": {
+
+        }
+      }
+    ]
+  }
+]
