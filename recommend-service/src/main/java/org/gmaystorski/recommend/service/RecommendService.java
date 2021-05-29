@@ -1,7 +1,7 @@
 package org.gmaystorski.recommend.service;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +16,9 @@ import org.gmaystorski.recommend.commons.cypher.query.CypherQueryBuilder.OrderDi
 import org.gmaystorski.recommend.commons.pool.ConnectionAcquisitionException;
 import org.gmaystorski.recommend.commons.pool.ConnectionReleaseException;
 import org.gmaystorski.recommend.commons.pool.SessionPool;
+import org.gmaystorski.recommend.service.model.ProductionDTO;
+import org.gmaystorski.recommend.service.model.RecommendationsDTO;
+import org.gmaystorski.recommend.service.model.UserInput;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
@@ -28,27 +31,29 @@ public class RecommendService {
     @Autowired
     private SessionPool sessionPool;
 
-    public Map<Production, Double> processInput(List<String> actorNames, List<String> movieTitles,
-            List<String> categories) {
-        Map<Production, Double> recommendations = new HashMap<>();
-        processActorNames(actorNames, movieTitles, recommendations);
-        processMovieTitles(movieTitles, recommendations);
-        List<String> normalizedCategories = categories.stream()
-                                                      .map(category -> Arrays.asList(category, "TV " + category))
-                                                      .flatMap(list -> list.stream())
-                                                      .collect(Collectors.toList());
-        System.out.println(normalizedCategories);
-        processCategories(normalizedCategories, recommendations);
-        return recommendations;
+    public RecommendationsDTO processInput(UserInput input) {
+        Map<ProductionDTO, Double> recommendations = new HashMap<>();
+        processActorNames(input.getActors(), input.getMovies(), recommendations);
+        processMovieTitles(input.getMovies(), recommendations);
+        processCategories(input.getCategories(), recommendations);
+        Map<String, Double> top50Recs = recommendations.entrySet()
+                                                       .stream()
+                                                       .sorted(Comparator.comparingDouble((
+                                                               Map.Entry<ProductionDTO, Double> entry) -> entry.getValue())
+                                                                         .reversed())
+                                                       .limit(50)
+                                                       .collect(Collectors.toMap(entry -> entry.getKey().getTitle(),
+                                                               entry -> entry.getValue()));
+        return new RecommendationsDTO(top50Recs);
     }
 
-    private void processCategories(List<String> categories, Map<Production, Double> recommendations) {
-        Map<Production, Integer> multipliers = recommendations.keySet()
-                                                              .stream()
-                                                              .collect(Collectors.toMap(production -> production,
-                                                                      production -> CollectionUtils.intersection(
-                                                                              production.getCategories(),
-                                                                              categories).size()));
+    private void processCategories(List<String> categories, Map<ProductionDTO, Double> recommendations) {
+        Map<ProductionDTO, Integer> multipliers = recommendations.keySet()
+                                                                 .stream()
+                                                                 .collect(Collectors.toMap(production -> production,
+                                                                         production -> CollectionUtils.intersection(
+                                                                                 production.getCategories(),
+                                                                                 categories).size()));
         multipliers.entrySet()
                    .stream()
                    .forEach(entry -> recommendations.compute(entry.getKey(),
@@ -56,7 +61,7 @@ public class RecommendService {
     }
 
     private void processActorNames(List<String> actorNames, List<String> movieTitles,
-            Map<Production, Double> recommendations) {
+            Map<ProductionDTO, Double> recommendations) {
         String titles = getCommaSeparatedStrings(movieTitles);
         String actors = getCommaSeparatedStrings(actorNames);
         String actorMoviesQuery = buildActorMoviesQuery(actors, titles);
@@ -65,32 +70,29 @@ public class RecommendService {
             executeQuery(actorMoviesQuery, record -> processGenericMovieResult(record, recommendations), session);
             sessionPool.releaseTarget(session);
         } catch (ConnectionAcquisitionException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (ConnectionReleaseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
     }
 
-    private void processMovieTitles(List<String> movieTitles, Map<Production, Double> recommendations) {
+    private void processMovieTitles(List<String> movieTitles, Map<ProductionDTO, Double> recommendations) {
         String titles = getCommaSeparatedStrings(movieTitles);
-        String similarityQuery = buildSimilarityQuery(titles);
+        // String similarityQuery = buildSimilarityQuery(titles);
         String directorMoviesQuery = buildDirectorMoviesQuery(titles);
         String decadeCategoryMoviesQuery = buildDecadeCategoryMoviesQuery(titles);
         try {
             Session session = sessionPool.getTarget();
-            executeQuery(similarityQuery, record -> processSimilarityResult(record, recommendations), session);
+            // executeQuery(similarityQuery, record -> processSimilarityResult(record,
+            // recommendations), session);
             executeQuery(directorMoviesQuery, record -> processGenericMovieResult(record, recommendations), session);
             executeQuery(decadeCategoryMoviesQuery,
                     record -> processGenericMovieResult(record, recommendations),
                     session);
             sessionPool.releaseTarget(session);
         } catch (ConnectionAcquisitionException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         } catch (ConnectionReleaseException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
@@ -204,22 +206,22 @@ public class RecommendService {
                                        .build();
     }
 
-    private void processSimilarityResult(Record record, Map<Production, Double> recommendations) {
-        Production similar = mapProductionFromRecord(record);
+    private void processSimilarityResult(Record record, Map<ProductionDTO, Double> recommendations) {
+        ProductionDTO similar = mapProductionFromRecord(record);
         double similarity = record.get("similarity").asDouble();
         updateRecommendation(similar, recommendations, similarity * 50.0);
     }
 
-    private void processGenericMovieResult(Record record, Map<Production, Double> recommendations) {
-        Production movie = mapProductionFromRecord(record);
+    private void processGenericMovieResult(Record record, Map<ProductionDTO, Double> recommendations) {
+        ProductionDTO movie = mapProductionFromRecord(record);
         updateRecommendation(movie, recommendations, 1.0);
     }
 
-    private Production mapProductionFromRecord(Record record) {
+    private ProductionDTO mapProductionFromRecord(Record record) {
         Map<String, Object> productionProps = record.get("v").asMap();
         List<String> categories = record.get("c").asList().stream().map(Objects::toString).collect(Collectors.toList());
 
-        return new Production(productionProps.get("id").toString(),
+        return new ProductionDTO(productionProps.get("id").toString(),
                 productionProps.get("description").toString(),
                 productionProps.get("title").toString(),
                 categories);
@@ -230,7 +232,8 @@ public class RecommendService {
         return "[" + joined + "]";
     }
 
-    private void updateRecommendation(Production production, Map<Production, Double> recommendations, Double score) {
+    private void updateRecommendation(ProductionDTO production, Map<ProductionDTO, Double> recommendations,
+            Double score) {
         if (!recommendations.containsKey(production)) {
             recommendations.put(production, score);
         } else {
