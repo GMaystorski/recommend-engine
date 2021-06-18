@@ -4,9 +4,9 @@ import java.util.Map;
 
 import org.gmaystorski.recommend.ingest.intent.ActionIntent;
 
-public abstract class AbstractActionFactory<T> {
+public abstract class AbstractActionFactory<T extends Action> {
 
-	public Action getAction(ActionIntent intent) {
+	public T getAction(ActionIntent intent) {
 		switch (intent.getEntityType()) {
 		case VERTEX:
 			return createUpsertVertexAction(intent.getProperties());
@@ -17,8 +17,8 @@ public abstract class AbstractActionFactory<T> {
 		}
 	}
 
-	protected abstract Action createUpsertVertexAction(Map<String, Object> requiredData);
+	protected abstract T createUpsertVertexAction(Map<String, Object> requiredData);
 
-	protected abstract Action createUpsertEdgeAction(Map<String, Object> requiredData);
+	protected abstract T createUpsertEdgeAction(Map<String, Object> requiredData);
 
 }
