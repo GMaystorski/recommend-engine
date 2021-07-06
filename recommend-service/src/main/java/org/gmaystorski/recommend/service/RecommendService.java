@@ -1,10 +1,13 @@
 package org.gmaystorski.recommend.service;
 
+import java.text.DecimalFormat;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -30,6 +33,7 @@ public class RecommendService {
 
     @Autowired
     private SessionPool sessionPool;
+    private static DecimalFormat df = new DecimalFormat("0.00");
 
     public RecommendationsDTO processInput(UserInput input) {
         Map<ProductionDTO, Double> recommendations = new HashMap<>();
@@ -38,12 +42,16 @@ public class RecommendService {
         processCategories(input.getCategories(), recommendations);
         Map<String, Double> top50Recs = recommendations.entrySet()
                                                        .stream()
-                                                       .sorted(Comparator.comparingDouble((
-                                                               Map.Entry<ProductionDTO, Double> entry) -> entry.getValue())
+                                                       .sorted(Comparator.comparingDouble(
+                                                               (Entry<ProductionDTO, Double> entry) -> entry.getValue())
                                                                          .reversed())
                                                        .limit(50)
                                                        .collect(Collectors.toMap(entry -> entry.getKey().getTitle(),
-                                                               entry -> entry.getValue()));
+                                                               entry -> Double.valueOf(df.format(entry.getValue())),
+                                                               (oldE, newE) -> {
+                                                                   throw new RuntimeException();
+                                                               },
+                                                               LinkedHashMap::new));
         return new RecommendationsDTO(top50Recs);
     }
 
